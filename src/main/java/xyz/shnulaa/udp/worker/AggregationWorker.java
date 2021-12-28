@@ -1,6 +1,6 @@
 package xyz.shnulaa.udp.worker;
 
-import xyz.shnulaa.udp.ChannelPool;
+import xyz.shnulaa.udp.ChannelPoolServer;
 import xyz.shnulaa.udp.Constant;
 import xyz.shnulaa.udp.Utils;
 
@@ -34,11 +34,11 @@ public class AggregationWorker implements Callable<CharBuffer> {
 
     @Override
     public CharBuffer call() throws Exception {
-        CharBuffer charBuffer = ChannelPool.getInstance().initCharBuffer(Constant.bodyLength * indexMap.size() * 2);
+        CharBuffer charBuffer = ChannelPoolServer.getInstance().initCharBuffer(Constant.bodyLength * indexMap.size() * 2);
         BlockingQueue<String> _processQueue = null;
 
         synchronized (Utils.class) {
-            Map<String, BlockingQueue<String>> map = ChannelPool.getInstance().getQueue();
+            Map<String, BlockingQueue<String>> map = ChannelPoolServer.getInstance().getQueue();
             if (!map.containsKey(md5Key)) {
                 Utils.log("AggregationWorker md5:" + md5Key + " not exist.");
                 map.put(md5Key, new LinkedBlockingQueue<String>());
@@ -81,6 +81,7 @@ public class AggregationWorker implements Callable<CharBuffer> {
                     charBuffer.flip();
                     byte[] bytes = Utils.hexStringToByteArray(charBuffer.toString());
                     try (FileOutputStream output = new FileOutputStream(Constant.OUTPUT_FILE_FULL_PATH, true)) {
+                        System.out.println("write file..");
                         output.write(bytes);
                     }
 //                    if (charBuffer.length() != 204800) {

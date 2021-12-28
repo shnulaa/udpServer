@@ -1,6 +1,6 @@
 package xyz.shnulaa.udp.worker;
 
-import xyz.shnulaa.udp.ChannelPool;
+import xyz.shnulaa.udp.ChannelPoolServer;
 import xyz.shnulaa.udp.Constant;
 import xyz.shnulaa.udp.Utils;
 
@@ -46,7 +46,7 @@ public class HandleBodyWorker implements Callable<Void> {
                             String body = after.substring(Constant.md5Length, after.length());
 
                             synchronized (Utils.class) {
-                                Map<String, BlockingQueue<String>> map = ChannelPool.getInstance().getQueue();
+                                Map<String, BlockingQueue<String>> map = ChannelPoolServer.getInstance().getQueue();
                                 if (!map.containsKey(md5)) {
                                     Utils.log("HandleBodyWorker md5:" + md5 + " not exist.");
                                     map.put(md5, new LinkedBlockingQueue<String>());

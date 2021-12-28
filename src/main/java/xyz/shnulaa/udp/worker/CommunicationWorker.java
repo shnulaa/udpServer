@@ -1,19 +1,15 @@
 package xyz.shnulaa.udp.worker;
 
-import xyz.shnulaa.udp.ChannelPool;
-import xyz.shnulaa.udp.Constant;
+import xyz.shnulaa.udp.ChannelPoolServer;
 import xyz.shnulaa.udp.Utils;
 
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 import static xyz.shnulaa.udp.Constant.bodyLength;
 
@@ -43,7 +39,7 @@ public class CommunicationWorker implements Callable<Void> {
                             if (after.isEmpty()) {
                                 continue;
                             }
-                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after));
+                            ChannelPoolServer.getInstance().getAggregationService().submit(new AggregationWorker(after));
 //                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after)).get();
                         }
                     }
