@@ -43,7 +43,8 @@ public class CommunicationWorker implements Callable<Void> {
                             if (after.isEmpty()) {
                                 continue;
                             }
-                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after)).get();
+                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after));
+//                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after)).get();
                         }
                     }
                 }

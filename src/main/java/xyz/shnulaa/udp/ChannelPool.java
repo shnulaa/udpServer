@@ -66,7 +66,7 @@ public class ChannelPool {
         this.selectors = selectors.stream().skip(1).collect(Collectors.toList());
 
         this.transferService = Executors.newFixedThreadPool(8);
-        this.aggregationService = Executors.newFixedThreadPool(1);
+        this.aggregationService = Executors.newFixedThreadPool(3);
     }
 
     /**
