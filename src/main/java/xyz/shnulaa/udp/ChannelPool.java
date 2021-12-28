@@ -181,16 +181,9 @@ public class ChannelPool {
         System.out.println("7bd3479c-1e7a-4469-b575-5ed06619aea1".length());
         ChannelPool channelPool = ChannelPool.getInstance();
 
-
         try {
             Stream.of(channelPool.getSelectorCommunication()).map(CommunicationWorker::new).forEach(channelPool.getTransferService()::submit);
             channelPool.getSelectors().stream().map(HandleBodyWorker::new).forEach(channelPool.getTransferService()::submit);
-//            Thread.sleep(1000);
-//            System.out.println("send1...........");
-//            channelPool.send(new String("12341234123412341").getBytes(Charset.defaultCharset()));
-//
-//            System.out.println("send2...........");
-//            channelPool.send(new String("54655465546554655465546554651212").getBytes(Charset.defaultCharset()));
             try (InputStream inputStream = new FileInputStream(new File("d:\\codeGenerateGui-1.1(1).zip"));) {
                 System.out.println("send...........");
                 channelPool.send(inputStream);
@@ -232,7 +225,7 @@ public class ChannelPool {
 
     public CharBuffer initCharBuffer() {
         if (charBuffer == null) {
-            charBuffer = CharBuffer.allocate(Contant.bodyLength  * 4000);
+            charBuffer = CharBuffer.allocate(Contant.bodyLength * 4000);
         }
         return charBuffer;
     }

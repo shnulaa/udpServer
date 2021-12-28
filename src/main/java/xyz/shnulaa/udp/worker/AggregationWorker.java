@@ -46,16 +46,6 @@ public class AggregationWorker implements Callable<CharBuffer> {
             _processQueue = map.get(md5Key);
         }
 
-
-//        Map<String, BlockingQueue<String>> map = ChannelPool.getInstance().getQueue();
-//        synchronized (Utils.class) {
-//            if (!map.containsKey(md5Key)) {
-//                map.put(md5Key, new LinkedBlockingQueue<String>());
-//            }
-//            _processQueue = map.get(md5Key);
-//        }
-
-
         if (_processQueue == null) {
             System.err.println("AggregationWorker _processQueue is null..");
             return null;
@@ -75,20 +65,28 @@ public class AggregationWorker implements Callable<CharBuffer> {
                 Integer index = indexMap.get(key);
 
                 if (index == null) {
-                    Utils.log("key:" + key + ", body:" + body + ", index = null");
+                    Utils.error("key:" + key + ", body:" + body + ", index = null");
                     continue;
                 }
-                charBuffer.position((index * (Contant.bodyLength)));
-                for (char c : body.toCharArray()) {
-                    charBuffer.put(c);
+
+                synchronized (Utils.class) {
+                    charBuffer.position((index * (Contant.bodyLength)));
+                    charBuffer.put(body.toCharArray());
                 }
 
                 Utils.log("key:" + key + ", body:" + body);
                 if (count.incrementAndGet() == indexMap.size()) {
-                    System.out.println("Complete........");
+                    charBuffer.position((indexMap.size()) * (Contant.bodyLength));
+
+                    System.out.println("Complete........, charBuffer.length():" + charBuffer.length());
+
+//                    if (charBuffer.length() != 3891200) {
+//                        Utils.error("body length:" + body.length() + ",indexMap size:" + indexMap.size() + ", count size:" + count.get() + ", body:" + body);
+//                    }
+
                     break;
                 } else {
-//                    Utils.error("indexMap size:" + indexMap.size() + ", count size:" + count.get());
+                    Utils.error("indexMap size:" + indexMap.size() + ", count size:" + count.get());
                 }
             } catch (Exception e) {
                 e.printStackTrace();

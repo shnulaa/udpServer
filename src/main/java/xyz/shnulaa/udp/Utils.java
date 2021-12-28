@@ -21,7 +21,7 @@ public class Utils {
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     private static final boolean IS_LOG_ENABLE = false;
-    private static final boolean IS_LOG_ERROR_ENABLE = true;
+    private static final boolean IS_LOG_ERROR_ENABLE = false;
 
     public static String bytesToHex(byte[] bytes, int nRead) {
         if (nRead < bytes.length) {
