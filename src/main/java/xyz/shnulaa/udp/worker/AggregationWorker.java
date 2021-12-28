@@ -34,8 +34,7 @@ public class AggregationWorker implements Callable<CharBuffer> {
 
     @Override
     public CharBuffer call() throws Exception {
-        CharBuffer charBuffer = ChannelPool.getInstance().initCharBuffer();
-
+        CharBuffer charBuffer = ChannelPool.getInstance().initCharBuffer(Constant.bodyLength * indexMap.size() * 2);
         BlockingQueue<String> _processQueue = null;
 
         synchronized (Utils.class) {
@@ -84,11 +83,11 @@ public class AggregationWorker implements Callable<CharBuffer> {
                     try (FileOutputStream output = new FileOutputStream(Constant.OUTPUT_FILE_FULL_PATH, true)) {
                         output.write(bytes);
                     }
-                    if (charBuffer.length() != 204800) {
-                        System.out.println("Complete........, charBuffer.length():" + charBuffer.length());
-                        System.err.println("index:" + index + ",body length:" + body.length() + ",indexMap size:" + indexMap.size() + ", count size:" + count.get() + ", body:" + body);
-                    }
-                    ChannelPool.getInstance().clearCharBuffer();
+//                    if (charBuffer.length() != 204800) {
+//                        System.out.println("Complete........, charBuffer.length():" + charBuffer.length());
+//                        System.err.println("index:" + index + ",body length:" + body.length() + ",indexMap size:" + indexMap.size() + ", count size:" + count.get() + ", body:" + body);
+//                    }
+//                    ChannelPool.getInstance().clearCharBuffer();
 
                     break;
                 } else {

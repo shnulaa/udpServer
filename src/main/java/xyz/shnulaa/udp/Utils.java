@@ -1,9 +1,11 @@
 package xyz.shnulaa.udp;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -88,6 +90,24 @@ public class Utils {
 
     public static String fetchContent(ByteBuffer byteBuffer, SelectionKey sk) throws IOException {
         DatagramChannel datagramChannel = (DatagramChannel) sk.channel();
+
+
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        int numRead = 0;
+//        while (numRead >= 0) {
+////            byteBuffer.rewind();
+//            DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+//            numRead = datagramChannel.read(byteBuffer);
+//            byteBuffer.rewind();
+//
+//            outputStream.write(byteBuffer.array());
+//
+//        }
+//        return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+
+
+//        DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+
         SocketAddress sa = datagramChannel.receive(byteBuffer);
         byteBuffer.flip();
         // 测试：通过将收到的ByteBuffer首先通过缺省的编码解码成CharBuffer 再输出

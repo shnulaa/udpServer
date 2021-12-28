@@ -104,6 +104,7 @@ public class ChannelPool {
     // 1,2,3,4,5   1,2,3,4
     public void send(String data) {
         Utils.log(data);
+//        System.out.println(data.length() / Constant.bodyLength);
         String[] array = data.split("(?<=\\G.{" + Constant.bodyLength + "})");
         List<String> uuIdList =
                 IntStream.rangeClosed(1, array.length).mapToObj(i -> UUID.randomUUID().toString()).collect(Collectors.toList());
@@ -138,7 +139,7 @@ public class ChannelPool {
 
     public void send(InputStream is) throws IOException {
         int nRead;
-        byte[] data = new byte[Constant.bodyLength * 100];
+        byte[] data = new byte[Constant.bodyLength * 400];
         while ((nRead = is.read(data, 0, data.length)) != -1) {
             String hex = Utils.bytesToHex(data, nRead);
             send(hex);
@@ -223,9 +224,9 @@ public class ChannelPool {
     }
 
 
-    public CharBuffer initCharBuffer() {
+    public CharBuffer initCharBuffer(int size) {
         if (charBuffer == null) {
-            charBuffer = CharBuffer.allocate(Constant.bodyLength * 4000);
+            charBuffer = CharBuffer.allocate(size);
         }
         return charBuffer;
     }
