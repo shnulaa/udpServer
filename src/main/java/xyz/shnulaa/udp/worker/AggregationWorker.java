@@ -1,9 +1,10 @@
 package xyz.shnulaa.udp.worker;
 
 import xyz.shnulaa.udp.ChannelPool;
-import xyz.shnulaa.udp.Contant;
+import xyz.shnulaa.udp.Constant;
 import xyz.shnulaa.udp.Utils;
 
+import java.io.FileOutputStream;
 import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -60,8 +61,8 @@ public class AggregationWorker implements Callable<CharBuffer> {
 
                 Utils.log("take-> md5:" + md5Key + ", event:" + event);
 
-                String key = event.substring(0, Contant.headLength);
-                String body = event.substring(Contant.headLength, event.length());
+                String key = event.substring(0, Constant.headLength);
+                String body = event.substring(Constant.headLength, event.length());
                 Integer index = indexMap.get(key);
 
                 if (index == null) {
@@ -70,19 +71,24 @@ public class AggregationWorker implements Callable<CharBuffer> {
                 }
 
                 synchronized (Utils.class) {
-                    charBuffer.position((index * (Contant.bodyLength)));
+                    charBuffer.position((index * (Constant.bodyLength)));
                     charBuffer.put(body.toCharArray());
                 }
 
                 Utils.log("key:" + key + ", body:" + body);
                 if (count.incrementAndGet() == indexMap.size()) {
-                    charBuffer.position((indexMap.size()) * (Contant.bodyLength));
+                    charBuffer.position((indexMap.size() - 1) * (Constant.bodyLength) + body.length());
 
-                    System.out.println("Complete........, charBuffer.length():" + charBuffer.length());
-
-//                    if (charBuffer.length() != 3891200) {
-//                        Utils.error("body length:" + body.length() + ",indexMap size:" + indexMap.size() + ", count size:" + count.get() + ", body:" + body);
-//                    }
+                    charBuffer.flip();
+                    byte[] bytes = Utils.hexStringToByteArray(charBuffer.toString());
+                    try (FileOutputStream output = new FileOutputStream(Constant.OUTPUT_FILE_FULL_PATH, true)) {
+                        output.write(bytes);
+                    }
+                    if (charBuffer.length() != 204800) {
+                        System.out.println("Complete........, charBuffer.length():" + charBuffer.length());
+                        System.err.println("index:" + index + ",body length:" + body.length() + ",indexMap size:" + indexMap.size() + ", count size:" + count.get() + ", body:" + body);
+                    }
+                    ChannelPool.getInstance().clearCharBuffer();
 
                     break;
                 } else {

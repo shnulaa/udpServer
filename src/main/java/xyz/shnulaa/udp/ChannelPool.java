@@ -104,7 +104,7 @@ public class ChannelPool {
     // 1,2,3,4,5   1,2,3,4
     public void send(String data) {
         Utils.log(data);
-        String[] array = data.split("(?<=\\G.{" + Contant.bodyLength + "})");
+        String[] array = data.split("(?<=\\G.{" + Constant.bodyLength + "})");
         List<String> uuIdList =
                 IntStream.rangeClosed(1, array.length).mapToObj(i -> UUID.randomUUID().toString()).collect(Collectors.toList());
         String uuidStr = null;
@@ -138,7 +138,7 @@ public class ChannelPool {
 
     public void send(InputStream is) throws IOException {
         int nRead;
-        byte[] data = new byte[Contant.bodyLength * 100];
+        byte[] data = new byte[Constant.bodyLength * 100];
         while ((nRead = is.read(data, 0, data.length)) != -1) {
             String hex = Utils.bytesToHex(data, nRead);
             send(hex);
@@ -184,7 +184,7 @@ public class ChannelPool {
         try {
             Stream.of(channelPool.getSelectorCommunication()).map(CommunicationWorker::new).forEach(channelPool.getTransferService()::submit);
             channelPool.getSelectors().stream().map(HandleBodyWorker::new).forEach(channelPool.getTransferService()::submit);
-            try (InputStream inputStream = new FileInputStream(new File("d:\\codeGenerateGui-1.1(1).zip"));) {
+            try (InputStream inputStream = new FileInputStream(new File(Constant.INPUT_FILE_FULL_PATH));) {
                 System.out.println("send...........");
                 channelPool.send(inputStream);
             }
@@ -225,7 +225,7 @@ public class ChannelPool {
 
     public CharBuffer initCharBuffer() {
         if (charBuffer == null) {
-            charBuffer = CharBuffer.allocate(Contant.bodyLength * 4000);
+            charBuffer = CharBuffer.allocate(Constant.bodyLength * 4000);
         }
         return charBuffer;
     }

@@ -1,6 +1,7 @@
 package xyz.shnulaa.udp.worker;
 
 import xyz.shnulaa.udp.ChannelPool;
+import xyz.shnulaa.udp.Constant;
 import xyz.shnulaa.udp.Utils;
 
 import java.io.FileOutputStream;
@@ -13,9 +14,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 
-import static xyz.shnulaa.udp.Contant.bodyLength;
+import static xyz.shnulaa.udp.Constant.bodyLength;
 
 public class CommunicationWorker implements Callable<Void> {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -43,22 +43,7 @@ public class CommunicationWorker implements Callable<Void> {
                             if (after.isEmpty()) {
                                 continue;
                             }
-
-
-                            Future<CharBuffer> f = ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after));
-                            CharBuffer result = f.get();
-                            if (result != null) {
-                                result.flip();
-                                byte[] bytes = Utils.hexStringToByteArray(result.toString());
-                                try (FileOutputStream output = new FileOutputStream("d:\\aa.zip", true)) {
-                                    System.out.println("write to file.... length：" + bytes.length);
-                                    output.write(bytes);
-                                }
-                            }
-
-                            ChannelPool.getInstance().clearCharBuffer();
-
-
+                            ChannelPool.getInstance().getAggregationService().submit(new AggregationWorker(after)).get();
                         }
                     }
                 }

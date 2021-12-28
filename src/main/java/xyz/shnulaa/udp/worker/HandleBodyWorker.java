@@ -1,13 +1,12 @@
 package xyz.shnulaa.udp.worker;
 
 import xyz.shnulaa.udp.ChannelPool;
-import xyz.shnulaa.udp.Contant;
+import xyz.shnulaa.udp.Constant;
 import xyz.shnulaa.udp.Utils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +14,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static xyz.shnulaa.udp.Contant.bodyLength;
+import static xyz.shnulaa.udp.Constant.bodyLength;
 
 public class HandleBodyWorker implements Callable<Void> {
     private final Selector selector;
@@ -38,13 +37,13 @@ public class HandleBodyWorker implements Callable<Void> {
                         iterator.remove();
                         if (sk.isReadable()) {
                             String after = Utils.fetchContent(byteBuffer, sk);
-                            if (after.isEmpty() || after.length() < Contant.headLength) {
+                            if (after.isEmpty() || after.length() < Constant.headLength) {
                                 Utils.error("error!!");
                                 continue;
                             }
 
-                            String md5 = after.substring(0, Contant.md5Length);
-                            String body = after.substring(Contant.md5Length, after.length());
+                            String md5 = after.substring(0, Constant.md5Length);
+                            String body = after.substring(Constant.md5Length, after.length());
 
                             synchronized (Utils.class) {
                                 Map<String, BlockingQueue<String>> map = ChannelPool.getInstance().getQueue();
