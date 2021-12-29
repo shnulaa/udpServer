@@ -44,7 +44,7 @@ public class HandleBodyWorker implements Callable<Void> {
                             String md5 = after.substring(0, MD5_LENGTH);
                             String uuid = after.substring(MD5_LENGTH, MD5_LENGTH + UUID_HEAD_LENGTH);
                             String body = after.substring(MD5_LENGTH + UUID_HEAD_LENGTH, after.length());
-                            server.getBlockQueue().add(new Event(md5, uuid, body, server.getTotalIndex().getAndIncrement()));
+                            server.getBlockQueue().put(new Event(md5, uuid, body, server.getTotalIndex().getAndIncrement()));
 
 //                            Map<Key, Value> positionMap = server.getPositionMap();
 //                            Key key = new Key(md5, uuid);

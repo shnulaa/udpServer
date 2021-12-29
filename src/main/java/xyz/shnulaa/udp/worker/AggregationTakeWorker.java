@@ -2,8 +2,10 @@ package xyz.shnulaa.udp.worker;
 
 import xyz.shnulaa.udp.*;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -64,8 +66,7 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
                 }
 
                 if (value.isAlready()) {
-
-                    writeToFile(charBuffer, value.getTotalLength());
+                    writeToFile(charBuffer, value.getPackagePosition(), value.getTotalLength());
                     charBuffer.clear();
                     charBuffer = null;
 //                    current.incrementAndGet();
@@ -89,13 +90,14 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
      * @param length
      * @throws IOException
      */
-    private void writeToFile(CharBuffer charBuffer, int length) throws IOException {
+    private void writeToFile(CharBuffer charBuffer, long seek, int length) throws IOException {
         charBuffer.position(length);
         charBuffer.flip();
         byte[] bytes = Utils.hexStringToByteArray(charBuffer.toString());
-        try (FileOutputStream output = new FileOutputStream(Constant.OUTPUT_FILE_FULL_PATH, true)) {
-            Utils.log("write file, position: " + length);
-            output.write(bytes);
+        try (RandomAccessFile file = new RandomAccessFile(new File(Constant.OUTPUT_FILE_FULL_PATH), "rw")) {
+            Utils.log("write file, seek:" + seek + ", position: " + length);
+            file.seek(seek);
+            file.write(bytes);
         }
     }
 }

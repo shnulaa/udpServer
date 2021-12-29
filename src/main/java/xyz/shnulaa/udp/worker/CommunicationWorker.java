@@ -23,7 +23,7 @@ public class CommunicationWorker implements Callable<Void> {
 
     public CommunicationWorker(Selector _selector) {
         this.selector = _selector;
-        this.packageIndex = new AtomicLong(1);
+        this.packageIndex = new AtomicLong(0);
     }
 
     @Override
@@ -55,14 +55,16 @@ public class CommunicationWorker implements Callable<Void> {
 //                            Utils.log(String.format("totalLength:%s, uuIds:%s", totalLength, uuIds));
 
                             synchronized (Utils.class) {
-//                                Key key = new Key(md5Key);
                                 if (!map.containsKey(md5Key)) {
                                     Map<String, Integer> positionMap = new HashMap<>(uuidArray.length);
                                     AtomicInteger index = new AtomicInteger(0);
                                     for (String uuid : uuidArray) {
                                         positionMap.put(uuid, index.getAndIncrement());
                                     }
-                                    map.put(md5Key, new Value(packageIndex.getAndIncrement(), positionMap, Integer.parseInt(totalLength.trim()), uuidArray.length));
+                                    int totalLengthInt = Integer.parseInt(totalLength.trim());
+                                    map.put(md5Key, new Value(packageIndex.getAndAdd(totalLengthInt), positionMap, totalLengthInt, uuidArray.length));
+
+
                                 }
                             }
 //                            synchronized (Utils.class) {
