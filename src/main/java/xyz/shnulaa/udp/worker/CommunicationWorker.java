@@ -62,7 +62,7 @@ public class CommunicationWorker implements Callable<Void> {
                                         positionMap.put(uuid, index.getAndIncrement());
                                     }
                                     int totalLengthInt = Integer.parseInt(totalLength.trim());
-                                    map.put(md5Key, new Value(packageIndex.getAndAdd(totalLengthInt), positionMap, totalLengthInt, uuidArray.length));
+                                    map.put(md5Key, new Value(packageIndex.getAndAdd(totalLengthInt / 2), positionMap, totalLengthInt, uuidArray.length));
 
 
                                 }

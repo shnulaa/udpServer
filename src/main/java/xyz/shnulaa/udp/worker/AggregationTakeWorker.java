@@ -69,8 +69,6 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
                     writeToFile(charBuffer, value.getPackagePosition(), value.getTotalLength());
                     charBuffer.clear();
                     charBuffer = null;
-//                    current.incrementAndGet();
-//                    break;
                 } else {
                     Utils.error("md5:" + event.getMd5() + ",indexMap size:" + value.getExpectNum() + ", count size:" + value.getReaded().get());
                 }
