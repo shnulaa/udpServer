@@ -1,24 +1,23 @@
 package xyz.shnulaa.udp;
 
+import xyz.shnulaa.udp.worker.AggregationTakeWorker;
 import xyz.shnulaa.udp.worker.CommunicationWorker;
 import xyz.shnulaa.udp.worker.HandleBodyWorker;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class ChannelPoolServer {
@@ -37,10 +36,40 @@ public class ChannelPoolServer {
 
     private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
 
+
+    private ExecutorService communicationService;
     private ExecutorService transferService;
     private ExecutorService aggregationService;
 
     private CharBuffer charBuffer;
+
+    private AtomicBoolean interuptAWorker;
+
+
+    ////////////////////////////////////////////////////
+    private final Map<String, Value> positionMap;
+    private BlockingQueue<Event> blockQueue = new PriorityBlockingQueue<>();
+
+
+    private final AtomicLong totalIndex = new AtomicLong(1);
+    private final AtomicLong retryIndex = new AtomicLong(Integer.MAX_VALUE);
+
+    public BlockingQueue<Event> getBlockQueue() {
+        return blockQueue;
+    }
+
+    public Map<String, Value> getPositionMap() {
+        return positionMap;
+    }
+
+    public AtomicLong getTotalIndex() {
+        return totalIndex;
+    }
+
+    public AtomicLong getRetryIndex() {
+        return retryIndex;
+    }
+
 
     /**
      * ChannelPool
@@ -48,15 +77,19 @@ public class ChannelPoolServer {
     public ChannelPoolServer() {
         List<Selector> selectors = initServerPool();
         assert !selectors.isEmpty();
+        this.interuptAWorker = new AtomicBoolean(false);
+        this.positionMap = new ConcurrentHashMap<>();
 
         this.selectorCommunication = selectors.iterator().next();
         this.selectors = selectors.stream().skip(1).collect(Collectors.toList());
 
+        this.communicationService = Executors.newFixedThreadPool(1);
         this.transferService = Executors.newFixedThreadPool(8);
-        this.aggregationService = Executors.newFixedThreadPool(5);
+        this.aggregationService = Executors.newFixedThreadPool(1);
 
-        Stream.of(getSelectorCommunication()).map(CommunicationWorker::new).forEach(getTransferService()::submit);
+        Stream.of(getSelectorCommunication()).map(CommunicationWorker::new).forEach(getCommunicationService()::submit);
         getSelectors().stream().map(HandleBodyWorker::new).forEach(getTransferService()::submit);
+        this.aggregationService.submit(new AggregationTakeWorker());
     }
 
     private List<Selector> initServerPool() {
@@ -111,12 +144,21 @@ public class ChannelPoolServer {
         }
     }
 
+
+    public ExecutorService getCommunicationService() {
+        return communicationService;
+    }
+
     public ExecutorService getTransferService() {
         return transferService;
     }
 
     public ExecutorService getAggregationService() {
         return aggregationService;
+    }
+
+    public AtomicBoolean getInteruptAWorker() {
+        return interuptAWorker;
     }
 
 

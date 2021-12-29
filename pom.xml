@@ -19,6 +19,40 @@
                     <target>8</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>xyz.shnulaa.udp.Bootstrap</mainClass>
+                                    <packageName>xyz.shnulaa.udp</packageName>
+                                    <addExtensions/>
+                                </manifest>
+                                <manifestEntries>
+                                    <mode>development</mode>
+                                    <Implementation-Title>xyz.shnulaa.udp</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Build>${buildNumber}</Implementation-Build>
+                                    <Implementation-Vendor>dCache</Implementation-Vendor>
+                                    <url>${project.url}</url>
+                                    <Build-Time>${maven.build.timestamp}</Build-Time>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

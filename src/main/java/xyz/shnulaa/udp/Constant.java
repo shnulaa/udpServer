@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class Constant {
-    public static final int md5Length = 32;
-    public static final int headLength = 36;
-    public static final int bodyLength = 1024;
+
+    public static final int TOTAL_BODY_LENGTH = 10;
+    public static final int MD5_LENGTH = 32; // UUID array to MD5
+    public static final int UUID_HEAD_LENGTH = 36; // UUID length
+    public static final int BODY_LENGTH = 1024; // body size
+    public static final int SEND_PER_PACKAGE = 20;
 
 
     public static String INPUT_FILE_FULL_PATH = "d:\\test\\.bak_4.log";
