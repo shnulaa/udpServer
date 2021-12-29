@@ -2,6 +2,7 @@ package xyz.shnulaa.udp;
 
 import com.sun.org.apache.bcel.internal.Const;
 
+import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,6 +13,7 @@ public class Value {
     private int totalLength;
     private AtomicInteger readed;
     private int expectNum;
+    private CharBuffer charBuffer;
 
     public Value(long packagePosition, Map<String, Integer> position, int totalLength, int expectNum) {
         this.packagePosition = packagePosition;
@@ -19,6 +21,7 @@ public class Value {
         this.totalLength = totalLength;
         this.expectNum = expectNum;
         this.readed = new AtomicInteger(1);
+        this.charBuffer = CharBuffer.allocate(totalLength);
     }
 
     public long getPackagePosition() {
@@ -38,11 +41,16 @@ public class Value {
     }
 
     public boolean isAlready() {
-        return readed.incrementAndGet() == expectNum -1;
+        return readed.getAndIncrement() == expectNum;
     }
 
     public int getExpectNum() {
         return expectNum;
+    }
+
+
+    public CharBuffer getCharBuffer() {
+        return charBuffer;
     }
 
 

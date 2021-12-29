@@ -30,7 +30,7 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
                 // position map not ready yet
                 if (!positionMap.containsKey(event.getMd5())) {
                     Utils.error("key has no position yet.");
-//                    Thread.sleep(10);
+                    Thread.sleep(10);
                     event.setPriority(server.getRetryIndex().getAndIncrement());
                     _processQueue.add(event);
                     continue;
@@ -38,33 +38,37 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
 
                 Value value = positionMap.get(event.getMd5());
                 // current package position not read yet
-                if (value.getPackagePosition() != current.get()) {
-                    Utils.error("current package position : " + value.getPackagePosition() + " not read yet");
-//                    Thread.sleep(1000);
-                    event.setPriority(server.getRetryIndex().getAndIncrement());
-                    _processQueue.add(event);
-                    continue;
-                }
+//                if (value.getPackagePosition() != current.get()) {
+//                    Utils.error("current package position : " + value.getPackagePosition() + " not read yet");
+////                    Thread.sleep(1000);
+//                    event.setPriority(server.getRetryIndex().getAndIncrement());
+//                    _processQueue.add(event);
+//                    continue;
+//                }
 
                 Map<String, Integer> map = value.getPosition();
-                if (!map.containsKey(event.getUuid())) {
-                    Utils.error("uuid position : " + event.getUuid() + " not read yet");
+//                if (!map.containsKey(event.getUuid())) {
+//                    Utils.error("uuid position : " + event.getUuid() + " not read yet");
 //                    Thread.sleep(1000);
-                    event.setPriority(server.getRetryIndex().getAndIncrement());
-                    _processQueue.add(event);
-                    continue;
-                }
+//                    event.setPriority(server.getRetryIndex().getAndIncrement());
+//                    _processQueue.add(event);
+//                    continue;
+//                }
 
-                CharBuffer charBuffer = server.initCharBuffer(value.getTotalLength());
+//                CharBuffer charBuffer = server.initCharBuffer(value.getTotalLength());
+                CharBuffer charBuffer = value.getCharBuffer();
                 synchronized (Utils.class) {
-                    charBuffer.position((map.get(event.getUuid()) * (Constant.BODY_LENGTH)));
+                    int index = map.get(event.getUuid());
+                    charBuffer.position((index * (Constant.BODY_LENGTH)));
                     charBuffer.put(event.getBody().toCharArray());
                 }
 
                 if (value.isAlready()) {
+
                     writeToFile(charBuffer, value.getTotalLength());
                     charBuffer.clear();
-                    current.incrementAndGet();
+                    charBuffer = null;
+//                    current.incrementAndGet();
 //                    break;
                 } else {
                     Utils.error("md5:" + event.getMd5() + ",indexMap size:" + value.getExpectNum() + ", count size:" + value.getReaded().get());
@@ -90,7 +94,7 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
         charBuffer.flip();
         byte[] bytes = Utils.hexStringToByteArray(charBuffer.toString());
         try (FileOutputStream output = new FileOutputStream(Constant.OUTPUT_FILE_FULL_PATH, true)) {
-            System.out.println("write file..");
+            Utils.log("write file, position: " + length);
             output.write(bytes);
         }
     }

@@ -46,6 +46,6 @@ public class Event implements Comparable<Event> {
 
     @Override
     public int compareTo(Event o) {
-        return this.priority > o.priority ? 1 : -1;
+        return this.priority > o.priority ? -1 : 1;
     }
 }
