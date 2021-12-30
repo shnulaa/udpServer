@@ -26,36 +26,34 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
         while (!Thread.currentThread().isInterrupted() && !server.getInteruptAWorker().get()) {
             try {
                 Event event = _processQueue.take();
+                String md5Sum = event.getMd5();
 //                Utils.log("take-> md5:" + event.getMd5() + ", uuid:" + event.getUuid());
                 Map<String, Value> positionMap = server.getPositionMap();
 //                Key key = new Key(event.getMd5());
                 // position map not ready yet
-                if (!positionMap.containsKey(event.getMd5())) {
-                    Utils.error("key has no position yet.");
-                    Thread.sleep(10);
-                    event.setPriority(server.getRetryIndex().getAndIncrement());
-                    _processQueue.add(event);
+                if (!positionMap.containsKey(md5Sum)) {
+                    server.getRetryService().submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            Utils.error("key " + md5Sum + " has no position yet.");
+                            try {
+                                Thread.sleep(event.addTimeout());
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            event.setPriority(server.getRetryIndex().getAndIncrement());
+                            _processQueue.add(event);
+                        }
+                    });
                     continue;
                 }
 
-                Value value = positionMap.get(event.getMd5());
-                // current package position not read yet
-//                if (value.getPackagePosition() != current.get()) {
-//                    Utils.error("current package position : " + value.getPackagePosition() + " not read yet");
-////                    Thread.sleep(1000);
-//                    event.setPriority(server.getRetryIndex().getAndIncrement());
-//                    _processQueue.add(event);
-//                    continue;
-//                }
-
+                Value value = positionMap.get(md5Sum);
+                if (value.isDone()) {
+                    Utils.error("key " + md5Sum + " is already done.");
+                    continue;
+                }
                 Map<String, Integer> map = value.getPosition();
-//                if (!map.containsKey(event.getUuid())) {
-//                    Utils.error("uuid position : " + event.getUuid() + " not read yet");
-//                    Thread.sleep(1000);
-//                    event.setPriority(server.getRetryIndex().getAndIncrement());
-//                    _processQueue.add(event);
-//                    continue;
-//                }
 
 //                CharBuffer charBuffer = server.initCharBuffer(value.getTotalLength());
                 CharBuffer charBuffer = value.getCharBuffer();
@@ -66,11 +64,13 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
                 }
 
                 if (value.isAlready()) {
-                    writeToFile(charBuffer, value.getPackagePosition(), value.getTotalLength());
+                    writeToFile(value, md5Sum);
                     charBuffer.clear();
                     charBuffer = null;
+                    value.setDone();
+//                    positionMap.remove(md5Sum);
                 } else {
-                    Utils.error("md5:" + event.getMd5() + ",indexMap size:" + value.getExpectNum() + ", count size:" + value.getReaded().get());
+                    // Utils.error("md5:" + event.getMd5() + ",indexMap size:" + value.getExpectNum() + ", count size:" + value.getReaded().get());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -88,13 +88,14 @@ public class AggregationTakeWorker implements Callable<CharBuffer> {
      * @param length
      * @throws IOException
      */
-    private void writeToFile(CharBuffer charBuffer, long seek, int length) throws IOException {
-        charBuffer.position(length);
+    private void writeToFile(Value value, String md5) throws IOException {
+        CharBuffer charBuffer = value.getCharBuffer();
+        charBuffer.position(value.getTotalLength());
         charBuffer.flip();
         byte[] bytes = Utils.hexStringToByteArray(charBuffer.toString());
         try (RandomAccessFile file = new RandomAccessFile(new File(Constant.OUTPUT_FILE_FULL_PATH), "rw")) {
-            Utils.log("write file, seek:" + seek + ", position: " + length);
-            file.seek(seek);
+            Utils.log("write file, md5:" + md5 + ", seek:" + value.getPackagePosition() + ", position: " + value.getTotalLength());
+            file.seek(value.getPackagePosition());
             file.write(bytes);
         }
     }

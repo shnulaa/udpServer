@@ -40,6 +40,7 @@ public class ChannelPoolServer {
     private ExecutorService communicationService;
     private ExecutorService transferService;
     private ExecutorService aggregationService;
+    private ExecutorService retryService;
 
     private CharBuffer charBuffer;
 
@@ -83,9 +84,10 @@ public class ChannelPoolServer {
         this.selectorCommunication = selectors.iterator().next();
         this.selectors = selectors.stream().skip(1).collect(Collectors.toList());
 
-        this.communicationService = Executors.newFixedThreadPool(1);
+        this.communicationService = Executors.newFixedThreadPool(2);
         this.transferService = Executors.newFixedThreadPool(8);
         this.aggregationService = Executors.newFixedThreadPool(1);
+        this.retryService = Executors.newFixedThreadPool(1);
 
         Stream.of(getSelectorCommunication()).map(CommunicationWorker::new).forEach(getCommunicationService()::submit);
         getSelectors().stream().map(HandleBodyWorker::new).forEach(getTransferService()::submit);
@@ -155,6 +157,10 @@ public class ChannelPoolServer {
 
     public ExecutorService getAggregationService() {
         return aggregationService;
+    }
+
+    public ExecutorService getRetryService() {
+        return retryService;
     }
 
     public AtomicBoolean getInteruptAWorker() {

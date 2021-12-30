@@ -21,6 +21,7 @@ public class CommunicationWorker implements Callable<Void> {
     private final Selector selector;
     private final AtomicLong packageIndex;
 
+
     public CommunicationWorker(Selector _selector) {
         this.selector = _selector;
         this.packageIndex = new AtomicLong(0);
@@ -30,9 +31,11 @@ public class CommunicationWorker implements Callable<Void> {
     public Void call() throws Exception {
         ByteBuffer byteBuffer = ByteBuffer.allocate((TOTAL_BODY_LENGTH + UUID_HEAD_LENGTH + 1) * SEND_PER_PACKAGE * 3);
         ChannelPoolServer server = ChannelPoolServer.getInstance();
+        AtomicInteger __index = new AtomicInteger(1);
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 int eventsCount = selector.select();
+                Utils.log("CommunicationWorker -> index:" + __index.getAndIncrement());
                 if (eventsCount > 0) {
                     Set<?> selectedKeys = selector.selectedKeys();
                     Iterator<?> iterator = selectedKeys.iterator();
@@ -51,8 +54,7 @@ public class CommunicationWorker implements Callable<Void> {
                             String md5Key = Utils.getMD5Str(uuIds);
                             String[] uuidArray = uuIds.split(",");
                             Map<String, Value> map = server.getPositionMap();
-
-//                            Utils.log(String.format("totalLength:%s, uuIds:%s", totalLength, uuIds));
+//                            Utils.log(String.format("CommunicationWorker -> index:" + __index.getAndIncrement() + ", totalLength:%s, md5Key:%s.", totalLength, md5Key));
 
                             synchronized (Utils.class) {
                                 if (!map.containsKey(md5Key)) {
@@ -62,28 +64,13 @@ public class CommunicationWorker implements Callable<Void> {
                                         positionMap.put(uuid, index.getAndIncrement());
                                     }
                                     int totalLengthInt = Integer.parseInt(totalLength.trim());
-                                    map.put(md5Key, new Value(packageIndex.getAndAdd(totalLengthInt / 2), positionMap, totalLengthInt, uuidArray.length));
-
-
+                                    long offset = packageIndex.getAndAdd(totalLengthInt / 2);
+                                    map.put(md5Key, new Value(offset, positionMap, totalLengthInt, uuidArray.length));
+//                                    Utils.log(String.format("CommunicationWorker -> index:" + __index.getAndIncrement() + ", totalLength:%s, md5Key:%s, offset:%s.", totalLength, md5Key, offset));
                                 }
                             }
-//                            synchronized (Utils.class) {
-//                                String md5Key = Utils.getMD5Str(after);
-//                                Map<String, BlockingQueue<String>> map = server.getQueue();
-//                                if (!map.containsKey(md5Key)) {
-//                                    Utils.log("CommunicationWorker md5:" + md5Key + " not exist.");
-//                                    map.put(md5Key, new LinkedBlockingQueue<String>());
-//                                }
-//                            }
-
-//                            server.getAggregationService().submit(new AggregationWorker(after));
-//                            CharBuffer charBuffer = server.getAggregationService().submit(new AggregationWorker(after)).get(40, TimeUnit.SECONDS);
-//                            if (charBuffer == null) {
-//                                System.err.println("error charBuffer is null.Interupt AggregationWorker。");
-//                                // Interupt AggregationWorker
-//                                server.getInteruptAWorker().set(true);
-//                                server.getQueue().get(Utils.getMD5Str(after)).put("");
-//                            }
+                        } else {
+//                            Utils.log("CommunicationWorker -> index:" + __index.getAndIncrement() + ", isReadable:" + sk.isReadable());
                         }
                     }
                 }

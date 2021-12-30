@@ -25,6 +25,14 @@ public class Bootstrap {
                 if (server != null && server.getAggregationService() != null) {
                     server.getAggregationService().shutdown();
                 }
+
+                if (server != null && server.getCommunicationService() != null) {
+                    server.getCommunicationService().shutdown();
+                }
+
+                if (server != null && server.getRetryService() != null) {
+                    server.getRetryService().shutdown();
+                }
             }
         } else if (args.length == 3 && "-c".equals(args[0])) {
             ChannelPoolClient client = null;

@@ -8,6 +8,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -68,6 +69,8 @@ public class ChannelPoolClient {
         }
     }
 
+    private AtomicInteger index = new AtomicInteger(1);
+
     // 1,2,3,4,5   1,2,3,4
     public void send(String data) {
         String[] array = data.split("(?<=\\G.{" + Constant.BODY_LENGTH + "})");
@@ -76,24 +79,26 @@ public class ChannelPoolClient {
         String uuidStr = null;
         try {
             uuidStr = String.join(",", uuIdList);
-            int totalBodyLength = Stream.of(array).mapToInt(String::length).sum();
+            String md5 = Utils.getMD5Str(uuidStr);
+//            long totalBodyLength = Stream.of(array).mapToInt(String::length).mapToLong(Long::valueOf).sum();
+            long totalBodyLength = data.length();
             String all = String.format("%" + TOTAL_BODY_LENGTH + "s", totalBodyLength) + uuidStr;
-            channelCommunication.write(Charset.defaultCharset().encode(all));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        String md5 = Utils.getMD5Str(uuidStr);
 
-        for (int index = 0; index < array.length; index++) {
-            try {
-                int chanelIndex = index % this.clientChannels.size();
-                String total = md5 + uuIdList.get(index) + array[index];
-//                System.out.println("md5:" + md5 + ", uuid:" + uuidStr);
-//                Utils.log("send -> index:" + index + ", total size:" + total.length());
-                this.clientChannels.get(chanelIndex).write(Charset.defaultCharset().encode(total));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Utils.log("send -> index:" + index.getAndIncrement() + ", md5:" + md5 + ", total size:" + totalBodyLength);
+            channelCommunication.write(Charset.defaultCharset().encode(all));
+            Thread.sleep(1);
+
+//            for (int index = 0; index < array.length; index++) {
+//                try {
+//                    int chanelIndex = index % this.clientChannels.size();
+//                    String total = md5 + uuIdList.get(index) + array[index];
+//                    this.clientChannels.get(chanelIndex).write(Charset.defaultCharset().encode(total));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -140,6 +145,9 @@ public class ChannelPoolClient {
 //        charBuffer.put("12", 3, 5);
         System.out.println(charBuffer.remaining());
         System.out.println(charBuffer.remaining());
+
+        System.out.println(String.format("%" + TOTAL_BODY_LENGTH + "s", Long.MAX_VALUE));
+
     }
 
 

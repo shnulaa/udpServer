@@ -4,6 +4,7 @@ import com.sun.org.apache.bcel.internal.Const;
 
 import java.nio.CharBuffer;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Value {
@@ -14,6 +15,7 @@ public class Value {
     private AtomicInteger readed;
     private int expectNum;
     private CharBuffer charBuffer;
+    private AtomicBoolean isDone = new AtomicBoolean(false);
 
     public Value(long packagePosition, Map<String, Integer> position, int totalLength, int expectNum) {
         this.packagePosition = packagePosition;
@@ -23,6 +25,15 @@ public class Value {
         this.readed = new AtomicInteger(1);
         this.charBuffer = CharBuffer.allocate(totalLength);
     }
+
+    public boolean setDone() {
+        return isDone.compareAndSet(false, true);
+    }
+
+    public boolean isDone() {
+        return isDone.get();
+    }
+
 
     public long getPackagePosition() {
         return packagePosition;

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class Constant {
 
-    public static final int TOTAL_BODY_LENGTH = 10;
+    public static final int TOTAL_BODY_LENGTH = 20;
     public static final int MD5_LENGTH = 32; // UUID array to MD5
     public static final int UUID_HEAD_LENGTH = 36; // UUID length
     public static final int BODY_LENGTH = 1024; // body size
