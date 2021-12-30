@@ -69,6 +69,9 @@ public class CommunicationWorker implements Callable<Void> {
 //                                    Utils.log(String.format("CommunicationWorker -> index:" + __index.getAndIncrement() + ", totalLength:%s, md5Key:%s, offset:%s.", totalLength, md5Key, offset));
                                 }
                             }
+
+
+
                         } else {
 //                            Utils.log("CommunicationWorker -> index:" + __index.getAndIncrement() + ", isReadable:" + sk.isReadable());
                         }

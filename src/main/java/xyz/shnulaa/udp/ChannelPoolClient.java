@@ -84,19 +84,19 @@ public class ChannelPoolClient {
             long totalBodyLength = data.length();
             String all = String.format("%" + TOTAL_BODY_LENGTH + "s", totalBodyLength) + uuidStr;
 
-            Utils.log("send -> index:" + index.getAndIncrement() + ", md5:" + md5 + ", total size:" + totalBodyLength);
-            channelCommunication.write(Charset.defaultCharset().encode(all));
+            int retVal = channelCommunication.write(Charset.defaultCharset().encode(all));
+            Utils.log("send -> index:" + index.getAndIncrement() + ", md5:" + md5 + ", total size:" + totalBodyLength + ", retVal:" + retVal);
             Thread.sleep(1);
 
-//            for (int index = 0; index < array.length; index++) {
-//                try {
-//                    int chanelIndex = index % this.clientChannels.size();
-//                    String total = md5 + uuIdList.get(index) + array[index];
-//                    this.clientChannels.get(chanelIndex).write(Charset.defaultCharset().encode(total));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+            for (int index = 0; index < array.length; index++) {
+                try {
+                    int chanelIndex = index % this.clientChannels.size();
+                    String total = md5 + uuIdList.get(index) + array[index];
+                    this.clientChannels.get(chanelIndex).write(Charset.defaultCharset().encode(total));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
